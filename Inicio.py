@@ -315,16 +315,17 @@ else:
 
 # Información en el sidebar
 with st.sidebar:
-    st.markdown("---")
-    st.markdown("### ℹ️ Sobre esta aplicación")
-    st.write("""
-    Esta aplicación te permite realizar consultas semánticas mejoradas con IA en bases de datos
-    vectoriales existentes en Pinecone.
+    with st.expander("Info")
+      st.markdown("---")
+      st.markdown("### ℹ️ Sobre esta aplicación")
+      st.write("""
+      Esta aplicación te permite realizar consultas semánticas mejoradas con IA en bases de datos
+      vectoriales existentes en Pinecone.
     
-    Características:
-    - Conexión directa a índices de Pinecone
-    - Búsqueda semántica con OpenAI
-    - Procesamiento con LLM para mejorar respuestas
-    - Soporte para múltiples namespaces
-    - Visualización de similitud y fuentes
-    """)
+      Características:
+     - Conexión directa a índices de Pinecone
+     - Búsqueda semántica con OpenAI
+     - Procesamiento con LLM para mejorar respuestas
+     - Soporte para múltiples namespaces
+     - Visualización de similitud y fuentes
+     """)
