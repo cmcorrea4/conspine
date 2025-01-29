@@ -51,7 +51,7 @@ with st.sidebar:
     # Selector de modelo LLM
     llm_model = st.selectbox(
         "Modelo LLM",
-        options=["gpt-3.5-turbo", "gpt-4"],
+        options=["gpt-3.5-turbo", "gpt-4o-mini"],
         help="Selecciona el modelo de lenguaje a utilizar"
     )
     
