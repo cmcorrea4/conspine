@@ -4,10 +4,11 @@ from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
 from langchain_pinecone import PineconeVectorStore
+from langchain.prompts import ChatPromptTemplate
 
 # Configuración de la página
 st.set_page_config(page_title="Consulta de Base de Datos Vectorial", layout="wide")
-st.title("🔍 Sistema de Consulta con Pinecone")
+st.title("🔍 Sistema de Consulta Inteligente con Pinecone")
 
 # Función para obtener índices de Pinecone
 def get_pinecone_indexes(api_key):
@@ -45,6 +46,22 @@ with st.sidebar:
         "Pinecone API Key",
         type="password",
         help="Introduce tu API key de Pinecone"
+    )
+    
+    # Selector de modelo LLM
+    llm_model = st.selectbox(
+        "Modelo LLM",
+        options=["gpt-3.5-turbo", "gpt-4"],
+        help="Selecciona el modelo de lenguaje a utilizar"
+    )
+    
+    # Temperatura del modelo
+    temperature = st.slider(
+        "Temperatura",
+        min_value=0.0,
+        max_value=1.0,
+        value=0.7,
+        help="Controla la creatividad de las respuestas"
     )
     
     # Botones de control
@@ -105,13 +122,59 @@ with st.sidebar:
     else:
         selected_index = None
 
-# Función para realizar consultas
+def get_enhanced_response(query, context_results, llm):
+    """Genera una respuesta mejorada usando el modelo LLM."""
+    # Template para el prompt
+    template = """
+    Actúa como un asistente experto y útil. Basándote en la siguiente información y pregunta,
+    genera una respuesta clara, precisa y bien estructurada.
+
+    Pregunta: {query}
+
+    Contexto relevante:
+    {context}
+
+    Por favor, proporciona una respuesta que:
+    1. Sea relevante y directa
+    2. Esté bien estructurada y sea fácil de entender
+    3. Incluya ejemplos o referencias cuando sea apropiado
+    4. Mantenga un tono profesional pero amigable
+
+    Respuesta:
+    """
+
+    # Preparar el contexto
+    context_texts = []
+    for match in context_results.matches:
+        if 'text' in match.metadata:
+            context_texts.append(f"- {match.metadata['text']}")
+    
+    context = "\n".join(context_texts)
+    
+    # Crear el prompt
+    prompt = ChatPromptTemplate.from_template(template)
+    
+    # Generar la respuesta
+    messages = prompt.format_messages(
+        query=query,
+        context=context
+    )
+    
+    response = llm.invoke(messages)
+    return response.content
+
 def query_pinecone(query_text, namespace, k=5):
     try:
-        # Inicializar embeddings
+        # Inicializar embeddings y LLM
         embedding_model = OpenAIEmbeddings(
             openai_api_key=openai_api_key,
             model="text-embedding-ada-002"
+        )
+        
+        llm = ChatOpenAI(
+            temperature=temperature,
+            model_name=llm_model,
+            openai_api_key=openai_api_key
         )
         
         # Generar embedding para la consulta
@@ -129,10 +192,14 @@ def query_pinecone(query_text, namespace, k=5):
             include_metadata=True
         )
         
-        return results
+        # Generar respuesta mejorada
+        enhanced_response = get_enhanced_response(query_text, results, llm)
+        
+        return results, enhanced_response
+        
     except Exception as e:
         st.error(f"Error en la consulta: {str(e)}")
-        return None
+        return None, None
 
 # Interface principal
 if openai_api_key and pinecone_api_key and selected_index:
@@ -148,28 +215,32 @@ if openai_api_key and pinecone_api_key and selected_index:
     # Botón de búsqueda
     if st.button("🔍 Buscar"):
         if query:
-            with st.spinner("🔄 Buscando..."):
-                results = query_pinecone(
+            with st.spinner("🔄 Buscando y procesando..."):
+                results, enhanced_response = query_pinecone(
                     query,
                     namespace=getattr(st.session_state, 'namespace', ''),
                     k=k
                 )
                 
                 if results and hasattr(results, 'matches'):
-                    st.markdown("### 📝 Resultados:")
+                    # Mostrar respuesta mejorada
+                    st.markdown("### 🤖 Respuesta Generada:")
+                    st.write(enhanced_response)
+                    
+                    # Mostrar fuentes
+                    st.markdown("### 📚 Fuentes Consultadas:")
                     
                     for i, match in enumerate(results.matches, 1):
                         score = match.score
-                        # Convertir score a porcentaje de similitud
                         similarity = round((1 - (1 - score)) * 100, 2)
                         
-                        with st.expander(f"📍 Resultado {i} - Similitud: {similarity}%"):
+                        with st.expander(f"📍 Fuente {i} - Similitud: {similarity}%"):
                             if 'text' in match.metadata:
                                 st.write(match.metadata['text'])
                             else:
                                 st.write("No se encontró texto en los metadatos")
                             
-                            # Mostrar metadatos adicionales si existen
+                            # Mostrar metadatos adicionales
                             other_metadata = {k:v for k,v in match.metadata.items() if k != 'text'}
                             if other_metadata:
                                 st.markdown("##### Metadatos adicionales:")
@@ -186,12 +257,13 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### ℹ️ Sobre esta aplicación")
     st.write("""
-    Esta aplicación te permite realizar consultas semánticas en bases de datos
+    Esta aplicación te permite realizar consultas semánticas mejoradas con IA en bases de datos
     vectoriales existentes en Pinecone.
     
     Características:
     - Conexión directa a índices de Pinecone
     - Búsqueda semántica con OpenAI
+    - Procesamiento con LLM para mejorar respuestas
     - Soporte para múltiples namespaces
-    - Visualización de similitud
+    - Visualización de similitud y fuentes
     """)
