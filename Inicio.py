@@ -60,7 +60,7 @@ with st.sidebar:
         "Temperatura",
         min_value=0.0,
         max_value=1.0,
-        value=0.7,
+        value=0.3,
         help="Controla la creatividad de las respuestas"
     )
     
@@ -127,7 +127,7 @@ def get_enhanced_response(query, context_results, llm):
     # Template para el prompt
     template = """
     Actúa como un asistente experto y útil. Basándote en la siguiente información y pregunta,
-    genera una respuesta clara, precisa y bien estructurada.
+    genera una respuesta, breve, clara, precisa y bien estructurada, si no hay contexto, di que no tienes contexto.
 
     Pregunta: {query}
 
