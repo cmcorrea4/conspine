@@ -5,6 +5,10 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
 from langchain_pinecone import PineconeVectorStore
 from langchain.prompts import ChatPromptTemplate
+from gtts import gTTS
+import base64
+import os
+from tempfile import NamedTemporaryFile
 
 # Configuración de la página
 st.set_page_config(page_title="Consulta de Base de Datos Vectorial", layout="wide")
@@ -51,8 +55,24 @@ with st.sidebar:
     # Selector de modelo LLM
     llm_model = st.selectbox(
         "Modelo LLM",
-        options=["gpt-3.5-turbo", "gpt-4o-mini"],
+        options=["gpt-3.5-turbo", "gpt-4"],
         help="Selecciona el modelo de lenguaje a utilizar"
+    )
+    
+    # Selector de idioma para TTS
+    tts_lang = st.selectbox(
+        "Idioma para Text-to-Speech",
+        options=[
+            "es", "en", "fr", "de", "it", "pt", "pl", "ru", 
+            "zh-CN", "ja", "ko", "hi", "ar"
+        ],
+        format_func=lambda x: {
+            "es": "Español", "en": "English", "fr": "Français",
+            "de": "Deutsch", "it": "Italiano", "pt": "Português",
+            "pl": "Polski", "ru": "Русский", "zh-CN": "中文",
+            "ja": "日本語", "ko": "한국어", "hi": "हिन्दी", "ar": "العربية"
+        }[x],
+        help="Selecciona el idioma para la conversión de texto a voz"
     )
     
     # Temperatura del modelo
@@ -60,7 +80,7 @@ with st.sidebar:
         "Temperatura",
         min_value=0.0,
         max_value=1.0,
-        value=0.3,
+        value=0.7,
         help="Controla la creatividad de las respuestas"
     )
     
@@ -122,12 +142,39 @@ with st.sidebar:
     else:
         selected_index = None
 
+def autoplay_audio(audio_data):
+    """Función para reproducir audio automáticamente en Streamlit."""
+    b64 = base64.b64encode(audio_data).decode()
+    md = f"""
+        <audio autoplay>
+        <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+        </audio>
+        """
+    st.markdown(md, unsafe_allow_html=True)
+
+def text_to_speech(text, lang="es"):
+    """Convierte texto a voz usando Google Text-to-Speech."""
+    try:
+        # Crear objeto gTTS
+        tts = gTTS(text=text, lang=lang, slow=False)
+        
+        # Guardar el audio temporalmente
+        with NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_file:
+            tts.save(tmp_file.name)
+            with open(tmp_file.name, "rb") as audio_file:
+                audio_bytes = audio_file.read()
+            os.unlink(tmp_file.name)  # Eliminar archivo temporal
+            return audio_bytes
+    except Exception as e:
+        st.error(f"Error en la generación de audio: {str(e)}")
+        return None
+
 def get_enhanced_response(query, context_results, llm):
     """Genera una respuesta mejorada usando el modelo LLM."""
     # Template para el prompt
     template = """
     Actúa como un asistente experto y útil. Basándote en la siguiente información y pregunta,
-    genera una respuesta, breve, clara, precisa y bien estructurada, si no hay contexto, di que no tienes contexto.
+    genera una respuesta clara, precisa y bien estructurada.
 
     Pregunta: {query}
 
@@ -226,6 +273,18 @@ if openai_api_key and pinecone_api_key and selected_index:
                     # Mostrar respuesta mejorada
                     st.markdown("### 🤖 Respuesta Generada:")
                     st.write(enhanced_response)
+                    
+                    # Generar y mostrar audio
+                    st.markdown("### 🔊 Escuchar Respuesta")
+                    audio_data = text_to_speech(enhanced_response, tts_lang)
+                    if audio_data:
+                        st.audio(audio_data, format="audio/mp3")
+                        st.download_button(
+                            label="⬇️ Descargar Audio",
+                            data=audio_data,
+                            file_name="respuesta.mp3",
+                            mime="audio/mp3"
+                        )
                     
                     # Mostrar fuentes
                     st.markdown("### 📚 Fuentes Consultadas:")
