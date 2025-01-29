@@ -315,7 +315,7 @@ else:
 
 # Información en el sidebar
 with st.sidebar:
-    with st.expander("Info")
+    with st.expander("Info"):
       st.markdown("---")
       st.markdown("### ℹ️ Sobre esta aplicación")
       st.write("""
