@@ -9,6 +9,7 @@ from gtts import gTTS
 import base64
 import os
 from tempfile import NamedTemporaryFile
+import re
 
 # Configuración de la página
 st.set_page_config(page_title="Consulta de Base de Datos Vectorial", layout="wide")
