@@ -315,7 +315,7 @@ else:
 
 # Información en el sidebar
 with st.sidebar:
-    with st.expander("### ℹ️Sobre esta aplicación"):
+    with st.expander("### ℹ️Acerca de esta aplicación"):
       st.markdown("---")
       st.markdown("### ℹ️ Características")
       st.write("""
@@ -328,4 +328,5 @@ with st.sidebar:
      - Procesamiento con LLM para mejorar respuestas
      - Soporte para múltiples namespaces
      - Visualización de similitud y fuentes
+     - Reproducción de audio de respuesta
      """)
