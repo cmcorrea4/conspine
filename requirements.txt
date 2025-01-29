@@ -18,13 +18,5 @@ python-dotenv>=0.19.0
 ffmpeg-python>=0.2.0
 pydub>=0.25.1
 
-# Utilidades del sistema
-tempfile
-base64
-os
-
 # Manejo de tipos
-typing>=3.7.4
-
-# Utilidades
-python-dotenv>=0.19.0
+typing-extensions>=4.5.0
