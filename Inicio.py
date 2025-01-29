@@ -156,7 +156,8 @@ def text_to_speech(text, lang="es"):
     """Convierte texto a voz usando Google Text-to-Speech."""
     try:
         # Crear objeto gTTS
-        tts = gTTS(text=text, lang=lang, slow=False)
+        texto_limpio = re.sub(r"[\*\#]", "", text)  # Elimina asteriscos y numerales
+        tts = gTTS(text=texto_limpio, lang=lang, slow=False)
         
         # Guardar el audio temporalmente
         with NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_file:
