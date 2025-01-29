@@ -315,9 +315,9 @@ else:
 
 # Información en el sidebar
 with st.sidebar:
-    with st.expander("### ℹ️Info"):
+    with st.expander(st.markdown("### ℹ️Sobre esta aplicación")):
       st.markdown("---")
-      st.markdown("### ℹ️ Sobre esta aplicación")
+      st.markdown("### ℹ️ Características")
       st.write("""
       Esta aplicación te permite realizar consultas semánticas mejoradas con IA en bases de datos
       vectoriales existentes en Pinecone.
