@@ -259,7 +259,7 @@ if openai_api_key and pinecone_api_key and selected_index:
     with col1:
         query = st.text_input("💭 ¿Qué deseas consultar?")
     with col2:
-        k = st.number_input("Número de resultados", min_value=1, max_value=10, value=5)
+        k = st.number_input("Número de resultados", min_value=1, max_value=10, value=3)
     
     # Botón de búsqueda
     if st.button("🔍 Buscar"):
