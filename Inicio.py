@@ -81,7 +81,7 @@ with st.sidebar:
         "Temperatura",
         min_value=0.0,
         max_value=1.0,
-        value=0.7,
+        value=0.0,
         help="Controla la creatividad de las respuestas"
     )
     
@@ -175,7 +175,7 @@ def get_enhanced_response(query, context_results, llm):
     """Genera una respuesta mejorada usando el modelo LLM."""
     # Template para el prompt
     template = """
-    Actúa como un asistente experto y útil. Basándote en la siguiente información y pregunta,
+    Actúa como un asistente experto y útil. Basándote ÚNICAMENENTE en la siguiente CONTEXTO y pregunta,
     genera una respuesta clara, precisa y bien estructurada.
 
     Pregunta: {query}
